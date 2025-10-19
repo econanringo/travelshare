@@ -15,7 +15,12 @@ export default async function PublicIndexPage() {
       <>
       <Header />
       <div className="max-w-4xl mx-auto p-6">
-        <h1 className="text-2xl font-semibold mb-4">公開された旅行記録</h1>
+        <div className="flex items-center justify-between mb-4">
+          <h1 className="text-2xl font-semibold">公開された旅行記録</h1>
+          <Link href="/records" className="text-sm text-muted-foreground hover:underline">
+            自分の記録を見る →
+          </Link>
+        </div>
         {docs.length === 0 ? (
           <div className="p-6 bg-muted rounded">公開された記録はありません。</div>
         ) : (

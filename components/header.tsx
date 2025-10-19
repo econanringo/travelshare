@@ -54,6 +54,11 @@ export function Header() {
         <nav className="flex items-center gap-4">
           {userData && (
             <div className="flex items-center gap-4">
+              <Link href="/records/new">
+                <Button variant="default" className="text-sm font-medium">
+                  記録を作成
+                </Button>
+              </Link>
               <span className="text-sm font-medium">
                 こんにちは！{userData.displayName}さん
               </span>

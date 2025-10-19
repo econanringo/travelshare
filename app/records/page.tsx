@@ -5,6 +5,7 @@ import { collection } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import { useAuth } from "@/hooks/useAuth";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,8 +39,6 @@ export default function RecordsPage() {
   const [editPublished, setEditPublished] = useState(false);
   const [savingEdit, setSavingEdit] = useState(false);
   const [editPlaces, setEditPlaces] = useState<Array<{ datetime: string; name: string }>>([]);
-
-  // tab: 'mine' | 'published'
   const [tab, setTab] = useState<'mine' | 'published'>('mine');
 
   useEffect(() => {
@@ -50,9 +49,8 @@ export default function RecordsPage() {
     }
 
     let q;
-    if (tab === 'mine') {
-      // user is guaranteed to be non-null here because of earlier return, but TypeScript can't infer it
-      q = fsQuery(collection(db, "travelRecords"), fsWhere("uid", "==", user!.uid), fsOrderBy("createdAt", "desc"));
+    if (tab === 'mine' && user) {
+      q = fsQuery(collection(db, "travelRecords"), fsWhere("uid", "==", user.uid), fsOrderBy("createdAt", "desc"));
     } else {
       q = fsQuery(collection(db, "travelRecords"), fsWhere("published", "==", true), fsOrderBy("createdAt", "desc"));
     }
@@ -94,7 +92,7 @@ export default function RecordsPage() {
 
       {error && <div className="text-destructive">{error}</div>}
 
-      {tab === 'mine' && !user ? (
+      {!user ? (
         <div className="p-6">
           <p className="mb-3">マイページを表示するにはログインしてください。</p>
           <Button onClick={() => router.push('/login')}>ログイン</Button>
@@ -135,7 +133,7 @@ export default function RecordsPage() {
               {r.notes && <div className="mt-3 text-sm">{r.notes}</div>}
 
               <div className="mt-3 flex gap-2">
-                {tab === 'mine' && (
+                {tab === 'mine' && user && (
                   <>
                     <Button size="sm" onClick={() => {
                       setEditingRecord(r);
