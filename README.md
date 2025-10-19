@@ -34,3 +34,28 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+# 用件定義
+## MVP
+- 予定表作成
+- 旅程アップロード
+  - 自分で入力
+- 旅程を見れる
+
+# DB
+## 旅程
+- 旅行のタイトル
+- 行った場所(都道府県のチェックボックス)
+- 旅行していた期間(timestamp)
+  - 開始日
+  - 終了日
+- 場所(loc)
+  - 日時
+- 感想テキスト
+- ユーザーID
+
+# ユーザー
+- メールアドレス
+- ニックネーム
+- 都道府県
+- 自己紹介
