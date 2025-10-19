@@ -46,8 +46,9 @@ export function Header() {
     <header className="w-full border-b">
       <div className="container flex h-14 max-w-screen-2xl items-center justify-between">
         <div className="flex items-center gap-2 font-semibold">
-          <Link href="/">
-            TravelShare
+          <Link href="/" className="inline-flex items-center gap-2">
+            <img src="/logo.png" alt="TravelShare" className="h-8 w-8 object-contain" />
+            <span>TravelShare</span>
           </Link>
         </div>
         <nav className="flex items-center gap-4">

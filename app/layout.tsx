@@ -26,6 +26,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
+      <link rel="icon" href="logo.png" />
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
