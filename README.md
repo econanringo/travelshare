@@ -37,10 +37,10 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 # 用件定義
 ## MVP
-- 予定表作成
-- 旅程アップロード
+- 予定表作成(坂口)
+- 旅程アップロード(岡崎)
   - 自分で入力
-- 旅程を見れる
+- 旅程を見れる(よしくん)
 
 # DB
 ## 旅程
