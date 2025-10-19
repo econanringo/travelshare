@@ -6,10 +6,11 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Calendar, MapPin, User, Plus } from "lucide-react"
+import { Calendar, MapPin, Plus } from "lucide-react"
+import { initializeApp } from "firebase/app"
+import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "firebase/firestore"
 
 interface TravelPlan {
   id: string
@@ -19,8 +20,6 @@ interface TravelPlan {
   endDate: string
   location: string
   datetime: string
-  impression: string
-  userId: string
   createdAt: number
 }
 
@@ -74,9 +73,22 @@ const PREFECTURES = [
   "沖縄県",
 ]
 
+const firebaseConfig = {
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+}
+
+const app = initializeApp(firebaseConfig)
+const db = getFirestore(app)
+
 export default function TravelPlanApp() {
   const [plans, setPlans] = useState<TravelPlan[]>([])
   const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const [formData, setFormData] = useState({
     title: "",
@@ -85,41 +97,54 @@ export default function TravelPlanApp() {
     endDate: "",
     location: "",
     datetime: "",
-    impression: "",
-    userId: "",
   })
 
   useEffect(() => {
-    const stored = localStorage.getItem("travelPlans")
-    if (stored) {
-      setPlans(JSON.parse(stored))
-    }
+    loadPlans()
   }, [])
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const newPlan: TravelPlan = {
-      id: Date.now().toString(),
-      ...formData,
-      createdAt: Date.now(),
+  const loadPlans = async () => {
+    try {
+      const q = query(collection(db, "travelPlans"), orderBy("createdAt", "desc"))
+      const querySnapshot = await getDocs(q)
+      const loadedPlans: TravelPlan[] = []
+      querySnapshot.forEach((doc) => {
+        loadedPlans.push({ id: doc.id, ...doc.data() } as TravelPlan)
+      })
+      setPlans(loadedPlans)
+    } catch (error) {
+      console.error("Error loading plans:", error)
     }
+  }
 
-    const updatedPlans = [...plans, newPlan]
-    setPlans(updatedPlans)
-    localStorage.setItem("travelPlans", JSON.stringify(updatedPlans))
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
 
-    setFormData({
-      title: "",
-      prefectures: [],
-      startDate: "",
-      endDate: "",
-      location: "",
-      datetime: "",
-      impression: "",
-      userId: "",
-    })
-    setShowForm(false)
+    try {
+      const newPlan = {
+        ...formData,
+        createdAt: Date.now(),
+      }
+
+      await addDoc(collection(db, "travelPlans"), newPlan)
+      await loadPlans()
+
+      setFormData({
+        title: "",
+        prefectures: [],
+        startDate: "",
+        endDate: "",
+        location: "",
+        datetime: "",
+      })
+      setShowForm(false)
+    } catch (error) {
+      console.error("Error saving plan:", error)
+      alert("保存中にエラーが発生しました")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const togglePrefecture = (prefecture: string) => {
@@ -167,21 +192,6 @@ export default function TravelPlanApp() {
                     placeholder="例: 夏の北海道旅行"
                     required
                   />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="userId">ユーザーID *</Label>
-                  <div className="relative">
-                    <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                    <Input
-                      id="userId"
-                      value={formData.userId}
-                      onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                      placeholder="ユーザーIDを入力"
-                      className="pl-10"
-                      required
-                    />
-                  </div>
                 </div>
 
                 <div className="space-y-3">
@@ -256,20 +266,8 @@ export default function TravelPlanApp() {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="impression">感想・メモ</Label>
-                  <Textarea
-                    id="impression"
-                    value={formData.impression}
-                    onChange={(e) => setFormData({ ...formData, impression: e.target.value })}
-                    placeholder="旅行の感想や思い出を記録してください..."
-                    rows={5}
-                    className="resize-none"
-                  />
-                </div>
-
-                <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700" size="lg">
-                  旅行プランを保存
+                <Button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700" size="lg" disabled={loading}>
+                  {loading ? "保存中..." : "旅行プランを保存"}
                 </Button>
               </form>
             </CardContent>
@@ -290,12 +288,6 @@ export default function TravelPlanApp() {
                 <Card key={plan.id} className="shadow-md hover:shadow-lg transition-shadow border-indigo-100">
                   <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50">
                     <CardTitle className="text-xl">{plan.title}</CardTitle>
-                    <CardDescription>
-                      <div className="flex items-center gap-2 text-sm">
-                        <User className="h-3 w-3" />
-                        <span>ユーザーID: {plan.userId}</span>
-                      </div>
-                    </CardDescription>
                   </CardHeader>
                   <CardContent className="pt-4 space-y-3">
                     <div className="flex items-start gap-2">
@@ -330,13 +322,6 @@ export default function TravelPlanApp() {
                     {plan.datetime && (
                       <div className="text-sm">
                         <span className="font-medium">日時:</span> {new Date(plan.datetime).toLocaleString("ja-JP")}
-                      </div>
-                    )}
-
-                    {plan.impression && (
-                      <div className="text-sm pt-2 border-t">
-                        <span className="font-medium">感想:</span>
-                        <p className="text-gray-600 mt-1 whitespace-pre-wrap">{plan.impression}</p>
                       </div>
                     )}
                   </CardContent>
